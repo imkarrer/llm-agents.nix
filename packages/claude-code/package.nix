@@ -11,6 +11,7 @@
   bubblewrap,
   socat,
   mkUpdater,
+  cacert,
   disableTelemetry ? false,
 }:
 
@@ -59,12 +60,15 @@ stdenv.mkDerivation {
   #
   # CLAUDE_CODE_CERT_STORE=system drops the roots that the binary embeds, so
   # that cacert updates (root removals) apply to Claude Code.
+  # On darwin the "system" store reads the keychains, which hold no public
+  # roots, so the cacert bundle is added there as well (#11153).
   # See: https://code.claude.com/docs/en/network-config
   postFixup = ''
     wrapProgram $out/bin/claude \
       --argv0 claude \
       --set DISABLE_AUTOUPDATER 1 \
       --set-default CLAUDE_CODE_CERT_STORE system \
+      ${lib.optionalString stdenv.hostPlatform.isDarwin "--set-default NODE_EXTRA_CA_CERTS ${cacert}/etc/ssl/certs/ca-bundle.crt"} \
       --set-default DISABLE_NON_ESSENTIAL_MODEL_CALLS 1 \
       ${lib.optionalString disableTelemetry "--set DISABLE_TELEMETRY 1 --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1"} \
       --set DISABLE_INSTALLATION_CHECKS 1 ${lib.optionalString stdenv.hostPlatform.isLinux "--prefix PATH : ${
