@@ -3,7 +3,7 @@
   stdenv,
   flake,
   fetchFromGitHub,
-  zig,
+  zig_0_16,
   makeWrapper,
   nodejs,
   curl,
@@ -22,7 +22,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   nativeBuildInputs = [
-    zig.hook
+    zig_0_16.hook
     makeWrapper
   ];
 
